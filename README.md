@@ -296,16 +296,13 @@ tXml is one of the fastest pure JavaScript XML parsers:
 
 ```bash
 # Install dependencies
-npm install
-
-# Build
-npm run build
+bun install
 
 # Test
-npm test
+bun test
 
-# Test specific file
-node --test test/test-basic.js
+# Type check
+bun run typecheck
 ```
 
 ## License

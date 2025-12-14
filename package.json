@@ -1,28 +1,36 @@
 {
     "name": "txml",
     "version": "6.0.0",
-    "description": "fastest XML DOM Parser for node/browser/worker",
+    "description": "Fastest XML DOM Parser for Node.js, Bun, Deno, and browsers",
     "type": "module",
-    "main": "dist/index.cjs",
-    "module": "dist/index.mjs",
-    "scripts": {
-        "build": "rollup -c && npm run types:copy",
-        "types:copy": "cp src/*.d.ts dist/",
-        "test": "node --test test/test-*.js",
-        "prepublishOnly": "npm run build && npm test"
+    "main": "./src/index.js",
+    "module": "./src/index.js",
+    "types": "./src/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.d.ts",
+            "import": "./src/index.js",
+            "default": "./src/index.js"
+        },
+        "./txml": {
+            "types": "./src/tXml.d.ts",
+            "import": "./src/tXml.js",
+            "default": "./src/tXml.js"
+        },
+        "./transform-stream": {
+            "types": "./src/transformStream.d.ts",
+            "import": "./src/transformStream.js",
+            "default": "./src/transformStream.js"
+        },
+        "./package.json": "./package.json"
     },
-    "files": [
-        "dist",
-        "README.md",
-        "LICENSE",
-        "MIGRATION.md"
-    ],
+    "scripts": {
+        "test": "bun test",
+        "typecheck": "tsc --noEmit"
+    },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/TobiasNickel/tXml.git"
-    },
-    "browser": {
-        "fs": false
+        "url": "git+https://github.com/infalmo/tXml.git"
     },
     "keywords": [
         "xml",
@@ -31,42 +39,18 @@
         "document",
         "small",
         "fast",
-        "simple"
+        "simple",
+        "bun",
+        "deno"
     ],
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.mjs",
-            "require": "./dist/index.cjs",
-            "default": "./dist/index.mjs"
-        },
-        "./txml": {
-            "types": "./dist/tXml.d.ts",
-            "import": "./dist/txml.mjs",
-            "require": "./dist/txml.cjs",
-            "default": "./dist/txml.mjs"
-        },
-        "./transform-stream": {
-            "types": "./dist/transformStream.d.ts",
-            "import": "./dist/transformStream.mjs",
-            "require": "./dist/transformStream.cjs",
-            "default": "./dist/transformStream.mjs"
-        },
-        "./package.json": "./package.json"
-    },
-    "engines": {
-        "node": ">=18.0.0"
-    },
     "author": "Tobias Nickel",
     "license": "MIT",
     "bugs": {
-        "url": "https://github.com/TobiasNickel/tXml/issues"
+        "url": "https://github.com/infalmo/tXml/issues"
     },
-    "types": "dist/index.d.ts",
-    "homepage": "https://github.com/TobiasNickel/tXml#readme",
+    "homepage": "https://github.com/infalmo/tXml#readme",
     "devDependencies": {
-        "rollup": "^4.24.0",
-        "@rollup/plugin-terser": "^0.4.4",
-        "typescript": "^5.6.0"
+        "bun-types": "^1.1.38",
+        "typescript": "^5.7.2"
     }
 }
