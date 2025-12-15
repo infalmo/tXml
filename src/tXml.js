@@ -359,51 +359,44 @@ export function filter(children, f, depth = 0, path = '') {
 /**
  * Stringify parsed nodes back to XML
  * @param {import('./tXml.d.ts').TNode | (import('./tXml.d.ts').TNode | string)[] | undefined} O
+ * @param {import('./tXml.d.ts').StringifyOptions} [options] - Stringify options
  * @returns {string}
  */
-export function stringify(O) {
+export function stringify(O, options) {
     if (!O) return '';
     
+    const nodes = Array.isArray(O) ? O : [O];
+    const { skipTags, stripParams, compactTags, indentSpaces } = options || {};
+    const indent = indentSpaces > 0 ? ' '.repeat(indentSpaces) : '';
     let out = '';
 
-    /** @param {(import('./tXml.d.ts').TNode | string)[]} nodes */
-    const writeChildren = (nodes) => {
+    const write = (nodes, depth, compact) => {
         for (const node of nodes) {
             if (typeof node === 'string') {
-                out += node.trim();
+                const t = node.trim();
+                if (t) out += (!compact && indent) ? '\n' + indent.repeat(depth) + t : t;
             } else if (node) {
-                writeNode(node);
+                if (skipTags?.test(node.tagName)) continue;
+                const isCompact = compact || compactTags?.test(node.tagName);
+                if (!compact && indent) out += '\n' + indent.repeat(depth);
+                out += '<' + node.tagName;
+                for (const k in node.attributes) {
+                    if (stripParams?.test(k)) continue;
+                    const v = node.attributes[k];
+                    out += v === null ? ' ' + k : v.includes('"') ? ` ${k}='${v.trim()}'` : ` ${k}="${v.trim()}"`;
+                }
+                if (node.tagName[0] === '?') { out += '?>'; continue; }
+                out += '>';
+                const hasEl = node.children.some(c => typeof c === 'object');
+                write(node.children, depth + 1, isCompact);
+                if (!isCompact && indent && hasEl) out += '\n' + indent.repeat(depth);
+                out += '</' + node.tagName + '>';
             }
         }
-    };
-
-    /** @param {import('./tXml.d.ts').TNode} N */
-    const writeNode = (N) => {
-        if (!N) return;
-        out += `<${N.tagName}`;
-        
-        for (const [key, value] of Object.entries(N.attributes)) {
-            if (value === null) {
-                out += ` ${key}`;
-            } else if (!value.includes('"')) {
-                out += ` ${key}="${value.trim()}"`;
-            } else {
-                out += ` ${key}='${value.trim()}'`;
-            }
-        }
-        
-        if (N.tagName[0] === '?') {
-            out += '?>';
-            return;
-        }
-        
-        out += '>';
-        writeChildren(N.children);
-        out += `</${N.tagName}>`;
     };
     
-    writeChildren(Array.isArray(O) ? O : [O]);
-    return out;
+    write(nodes, 0, false);
+    return out[0] === '\n' ? out.slice(1) : out;
 }
 
 /**

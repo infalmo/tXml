@@ -354,3 +354,247 @@ describe("Attribute handling", () => {
     expect((input as TNode).attributes.value).toBe("test");
   });
 });
+
+describe("Stringify options", () => {
+  test("skipTags: skip script tags", () => {
+    const xml = '<root><script>alert("hi")</script><div>content</div></root>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { skipTags: /^script$/ });
+    expect(result).toBe("<root><div>content</div></root>");
+  });
+
+  test("skipTags: skip multiple tag types", () => {
+    const xml = "<root><script>js</script><style>css</style><div>content</div></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { skipTags: /^(script|style)$/ });
+    expect(result).toBe("<root><div>content</div></root>");
+  });
+
+  test("skipTags: regex pattern works", () => {
+    const xml = "<root><script>js</script><div>content</div></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { skipTags: /^script$/ });
+    expect(result).toBe("<root><div>content</div></root>");
+  });
+
+  test("stripParams: strip data-* attributes", () => {
+    const xml = '<div data-id="123" data-test="abc" class="main">content</div>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^data-/ });
+    expect(result).toBe('<div class="main">content</div>');
+  });
+
+  test("stripParams: strip multiple attribute patterns", () => {
+    const xml = '<button onclick="click()" onmouseover="hover()" class="btn">click</button>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^on/ });
+    expect(result).toBe('<button class="btn">click</button>');
+  });
+
+  test("stripParams: regex pattern works", () => {
+    const xml = '<div data-id="123" class="main">content</div>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^data-/ });
+    expect(result).toBe('<div class="main">content</div>');
+  });
+
+  test("indentSpaces: format with 2-space indentation", () => {
+    const xml = "<root><child><nested>text</nested></child></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 2 });
+    // Text-only content stays inline with its closing tag
+    expect(result).toBe(
+      "<root>\n  <child>\n    <nested>\n      text</nested>\n  </child>\n</root>",
+    );
+  });
+
+  test("indentSpaces: format with 4-space indentation", () => {
+    const xml = "<root><child>text</child></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 4 });
+    // Text-only content stays inline with its closing tag
+    expect(result).toBe("<root>\n    <child>\n        text</child>\n</root>");
+  });
+
+  test("indentSpaces: 0 means no indentation (default behavior)", () => {
+    const xml = "<root><child>text</child></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 0 });
+    expect(result).toBe("<root><child>text</child></root>");
+  });
+
+  test("compactTags: render inline elements compactly", () => {
+    const xml = "<root><p><span><b>bold</b></span> text</p></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      indentSpaces: 2,
+      compactTags: /^(span|b|i|a)$/,
+    });
+    expect(result).toBe("<root>\n  <p>\n    <span><b>bold</b></span>\n    text\n  </p>\n</root>");
+  });
+
+  test("compactTags: regex pattern works", () => {
+    const xml = "<root><span><b>text</b></span></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      indentSpaces: 2,
+      compactTags: /^span$/,
+    });
+    expect(result).toBe("<root>\n  <span><b>text</b></span>\n</root>");
+  });
+
+  test("combined options: skip, strip, compact, and indent", () => {
+    const xml =
+      '<html><head><script>js</script></head><body data-page="1"><div class="main"><span>hello</span></div></body></html>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      skipTags: /^(script|head)$/,
+      stripParams: /^data-/,
+      compactTags: /^span$/,
+      indentSpaces: 2,
+    });
+    expect(result).toBe(
+      '<html>\n  <body>\n    <div class="main">\n      <span>hello</span>\n    </div>\n  </body>\n</html>',
+    );
+  });
+
+  test("stringify without options maintains backward compatibility", () => {
+    const xml = '<root><child attr="value">text</child></root>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed);
+    expect(result).toBe('<root><child attr="value">text</child></root>');
+  });
+
+  test("empty options object maintains default behavior", () => {
+    const xml = "<root><child>text</child></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {});
+    expect(result).toBe("<root><child>text</child></root>");
+  });
+
+  test("skipTags: skips nested children of skipped tags", () => {
+    const xml = "<root><script><inner>should not appear</inner></script><div>visible</div></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { skipTags: /^script$/ });
+    expect(result).toBe("<root><div>visible</div></root>");
+  });
+
+  test("indentSpaces: handles multiple root elements", () => {
+    const xml = "<item>one</item><item>two</item>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 2 });
+    // Text-only content stays inline with its closing tag
+    expect(result).toBe("<item>\n  one</item>\n<item>\n  two</item>");
+  });
+
+  test("stripParams: preserves attributes that don't match", () => {
+    const xml = '<div id="main" data-test="1" class="container">content</div>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^data-/ });
+    expect(result).toBe('<div id="main" class="container">content</div>');
+  });
+
+  // Complex tests
+  test("complex: deeply nested structure with indentation", () => {
+    const xml = "<a><b><c><d><e>deep</e></d></c></b></a>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 2 });
+    expect(result).toBe(
+      "<a>\n  <b>\n    <c>\n      <d>\n        <e>\n          deep</e>\n      </d>\n    </c>\n  </b>\n</a>",
+    );
+  });
+
+  test("complex: skip deeply nested tags", () => {
+    const xml =
+      "<root><keep><skip><deep>hidden</deep></skip><visible>shown</visible></keep></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { skipTags: /^skip$/ });
+    expect(result).toBe("<root><keep><visible>shown</visible></keep></root>");
+  });
+
+  test("complex: mixed content with compact inline elements", () => {
+    const xml = "<article><p>Start <em>emphasized <strong>bold</strong></em> end</p></article>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      indentSpaces: 2,
+      compactTags: /^(em|strong|span|b|i)$/,
+    });
+    expect(result).toBe(
+      "<article>\n  <p>\n    Start\n    <em>emphasized<strong>bold</strong></em>\n    end\n  </p>\n</article>",
+    );
+  });
+
+  test("complex: strip multiple attribute patterns in nested tags", () => {
+    const xml =
+      '<div data-id="1" onclick="click()" class="main"><span data-ref="2" onhover="h()" id="s1">text</span></div>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^(data-|on)/ });
+    expect(result).toBe('<div class="main"><span id="s1">text</span></div>');
+  });
+
+  test("complex: all options combined on real HTML-like structure", () => {
+    const xml = `<html><head><meta charset="utf-8"><script>alert(1)</script><style>.x{}</style></head><body data-page="home" onclick="track()"><header class="top"><nav><a href="/">Home</a></nav></header><main><article><p>Hello <b>world</b>!</p></article></main></body></html>`;
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      skipTags: /^(script|style|meta)$/,
+      stripParams: /^(data-|on)/,
+      compactTags: /^(a|b|i|span)$/,
+      indentSpaces: 2,
+    });
+    // Empty <head> gets closing tag on new line due to having had element children (before skip)
+    expect(result).toBe(
+      '<html>\n  <head>\n  </head>\n  <body>\n    <header class="top">\n      <nav>\n        <a href="/">Home</a>\n      </nav>\n    </header>\n    <main>\n      <article>\n        <p>\n          Hello\n          <b>world</b>\n          !\n        </p>\n      </article>\n    </main>\n  </body>\n</html>',
+    );
+  });
+
+  test("complex: siblings with mixed skip and keep", () => {
+    const xml = "<ul><li>one</li><script>x</script><li>two</li><style>y</style><li>three</li></ul>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      skipTags: /^(script|style)$/,
+      indentSpaces: 2,
+    });
+    expect(result).toBe(
+      "<ul>\n  <li>\n    one</li>\n  <li>\n    two</li>\n  <li>\n    three</li>\n</ul>",
+    );
+  });
+
+  test("complex: preserve processing instruction with options", () => {
+    const xml = '<?xml version="1.0"?><root data-x="1"><child>text</child></root>';
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      stripParams: /^data-/,
+      indentSpaces: 2,
+    });
+    expect(result).toBe('<?xml version="1.0"?>\n<root>\n  <child>\n    text</child>\n</root>');
+  });
+
+  test("complex: attributes with quotes and special chars", () => {
+    const xml = `<div title='He said "hello"' data-json='{"a":1}' class="normal">text</div>`;
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { stripParams: /^data-/ });
+    expect(result).toBe(`<div title='He said "hello"' class="normal">text</div>`);
+  });
+
+  test("complex: empty elements at various depths", () => {
+    const xml = "<root><empty1/><level1><empty2/><level2><empty3/></level2></level1></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, { indentSpaces: 2 });
+    expect(result).toBe(
+      "<root>\n  <empty1></empty1>\n  <level1>\n    <empty2></empty2>\n    <level2>\n      <empty3></empty3>\n    </level2>\n  </level1>\n</root>",
+    );
+  });
+
+  test("complex: compact parent affects all descendants", () => {
+    const xml =
+      "<root><compact><a><b><c>deep</c></b></a></compact><normal><x>text</x></normal></root>";
+    const parsed = tXml.parse(xml);
+    const result = tXml.stringify(parsed, {
+      indentSpaces: 2,
+      compactTags: /^compact$/,
+    });
+    expect(result).toBe(
+      "<root>\n  <compact><a><b><c>deep</c></b></a></compact>\n  <normal>\n    <x>\n      text</x>\n  </normal>\n</root>",
+    );
+  });
+});
