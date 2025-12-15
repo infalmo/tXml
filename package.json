@@ -1,48 +1,15 @@
 {
     "name": "txml",
     "version": "6.0.0",
-    "description": "Fastest XML DOM Parser for Node.js, Bun, Deno, and browsers",
+    "description": "Fast XML DOM Parser",
     "type": "module",
-    "main": "./dist/index.js",
-    "module": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "default": "./dist/index.js"
-        },
-        "./package.json": "./package.json"
-    },
+    "main": "./src/index.ts",
     "scripts": {
-        "build": "tsc",
-        "test": "bun test",
-        "typecheck": "tsc --noEmit",
-        "prepublishOnly": "npm run build"
+        "test": "bun test"
     },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/infalmo/tXml.git"
-    },
-    "keywords": [
-        "xml",
-        "parser",
-        "dom",
-        "document",
-        "small",
-        "fast",
-        "simple",
-        "bun",
-        "deno"
-    ],
     "author": "Tobias Nickel",
     "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/infalmo/tXml/issues"
-    },
-    "homepage": "https://github.com/infalmo/tXml#readme",
     "devDependencies": {
-        "bun-types": "^1.1.38",
-        "typescript": "^5.7.2"
+        "bun-types": "^1.1.38"
     }
 }
