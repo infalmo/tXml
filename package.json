@@ -12,16 +12,6 @@
             "import": "./dist/index.js",
             "default": "./dist/index.js"
         },
-        "./txml": {
-            "types": "./dist/tXml.d.ts",
-            "import": "./dist/tXml.js",
-            "default": "./dist/tXml.js"
-        },
-        "./transform-stream": {
-            "types": "./dist/transformStream.d.ts",
-            "import": "./dist/transformStream.js",
-            "default": "./dist/transformStream.js"
-        },
         "./package.json": "./package.json"
     },
     "scripts": {

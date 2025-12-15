@@ -1,6 +1,6 @@
 import { test, expect, describe } from "bun:test";
-import * as tXml from "../src/index.js";
-import type { TNode } from "../src/tXml.js";
+import * as tXml from "./index.js";
+import type { TNode } from "./index.js";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import fs from "node:fs";
@@ -9,11 +9,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const files = {
-  commented: join(__dirname, "examples/commented.svg"),
-  commentOnly: join(__dirname, "examples/commentOnly.svg"),
-  twoComments: join(__dirname, "examples/twocomments.svg"),
-  tagesschauRSS: join(__dirname, "examples/tagesschau.rss"),
-  wordpadDocxDocument: join(__dirname, "examples/wordpad.docx.document.xml"),
+  commented: join(__dirname, "../assets/commented.svg"),
+  commentOnly: join(__dirname, "../assets/commentOnly.svg"),
+  twoComments: join(__dirname, "../assets/twocomments.svg"),
+  tagesschauRSS: join(__dirname, "../assets/tagesschau.rss"),
+  wordpadDocxDocument: join(__dirname, "../assets/wordpad.docx.document.xml"),
 };
 
 describe("tXml basic parsing", () => {
